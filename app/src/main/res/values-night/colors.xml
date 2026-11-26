@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="window_background">#FF111512</color>
+
+    <color name="widget_bg">#FF1A201C</color>
+    <color name="widget_border">#665D6B61</color>
+    <color name="widget_text">#FFF1EEE3</color>
+    <color name="widget_sage">#FFA9C0B2</color>
+    <color name="widget_accent">#FFFF6B5E</color>
+    <color name="widget_accent_text">#FF111512</color>
+    <color name="widget_phase_work">#FFFF6B5E</color>
+    <color name="widget_phase_short">#FFA9C0B2</color>
+    <color name="widget_phase_long">#FFC9DCCF</color>
+</resources>

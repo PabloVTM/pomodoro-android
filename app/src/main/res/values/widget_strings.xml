@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_prompt">pablo@systems:~/pomodoro</string>
+    <string name="widget_label">Pomodoro</string>
+    <string name="widget_lock_label">Pomodoro — verrouillage</string>
+    <string name="widget_description">Minuteur Pomodoro avec démarrage, pause, réinitialisation et passage de phase.</string>
+    <string name="widget_lock_description">Minuteur Pomodoro compact pour l\'écran verrouillé.</string>
+    <string name="widget_time_placeholder">25:00</string>
+    <string name="widget_dots_placeholder">○ ○ ○ ○</string>
+
+    <string name="timer_channel_name">Minuteur en cours</string>
+    <string name="timer_channel_description">Décompte persistant pendant une session Pomodoro</string>
+    <string name="timer_notification_running">%1$s restantes</string>
+    <string name="timer_notification_paused">%1$s restantes (en pause)</string>
+</resources>

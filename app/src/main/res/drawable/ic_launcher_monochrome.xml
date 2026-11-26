@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Silhouette utilisée pour les icônes thématiques (Material You). -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M54,31 C56,24 62,19 68,18 C69,24 63,31 56,34 Z" />
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M54,31 C52,24 46,20 40,21 C39,27 45,33 52,34 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="6"
+        android:pathData="M31,56 a23,23 0 1,0 46,0 a23,23 0 1,0 -46,0" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="6"
+        android:strokeLineCap="round"
+        android:pathData="M54,56 L54,43 M54,56 L64,61" />
+</vector>

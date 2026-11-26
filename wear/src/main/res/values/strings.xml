@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Pomodoro</string>
+
+    <string name="wear_phase_work">concentration</string>
+    <string name="wear_phase_short_break">pause courte</string>
+    <string name="wear_phase_long_break">pause longue</string>
+
+    <string name="wear_status_ready">prêt</string>
+    <string name="wear_status_running">en cours</string>
+    <string name="wear_status_paused">en pause</string>
+    <string name="wear_status_offline">hors ligne</string>
+
+    <string name="wear_action_start">Démarrer</string>
+    <string name="wear_action_pause">Pause</string>
+    <string name="wear_action_reset">Réinitialiser</string>
+    <string name="wear_action_skip">Passer</string>
+
+    <string name="wear_waiting">En attente du téléphone</string>
+    <string name="wear_pomodoro_count">%1$d pomodoro</string>
+</resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="window_background">#FFF1EEE3</color>
+    <color name="ic_launcher_background">#FFF20B0B</color>
+
+    <color name="widget_bg">#FFF1EEE3</color>
+    <color name="widget_border">#4D4B5A50</color>
+    <color name="widget_text">#FF2B332D</color>
+    <color name="widget_sage">#FF4B5A50</color>
+    <color name="widget_accent">#FFF20B0B</color>
+    <color name="widget_accent_text">#FFF1EEE3</color>
+    <color name="widget_phase_work">#FFF20B0B</color>
+    <color name="widget_phase_short">#FF4B5A50</color>
+    <color name="widget_phase_long">#FF33413A</color>
+</resources>

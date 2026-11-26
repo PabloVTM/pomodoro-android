@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Pomodoro</string>
+
+    <string name="phase_work">Concentration</string>
+    <string name="phase_short_break">Pause courte</string>
+    <string name="phase_long_break">Pause longue</string>
+
+    <string name="status_ready">Prêt</string>
+    <string name="status_running">En cours</string>
+    <string name="status_paused">En pause</string>
+
+    <string name="action_start">Démarrer</string>
+    <string name="action_pause">Pause</string>
+    <string name="action_reset">Réinitialiser</string>
+    <string name="action_skip">Passer</string>
+    <string name="action_close">Fermer</string>
+
+    <string name="settings_title">Réglages</string>
+    <string name="settings_work">Durée de concentration</string>
+    <string name="settings_short_break">Pause courte</string>
+    <string name="settings_long_break">Pause longue</string>
+    <string name="settings_sessions">Sessions avant pause longue</string>
+    <string name="settings_auto_start">Enchaîner les phases</string>
+    <string name="settings_auto_start_desc">Démarrer automatiquement la phase suivante</string>
+    <string name="settings_sound">Son de fin de phase</string>
+    <string name="settings_sound_desc">Jouer un bip à la fin de chaque phase</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_notifications_desc">Alerte de fin de phase et décompte permanent dans la barre d\'état</string>
+    <string name="settings_reset_sessions">Remettre le compteur à zéro</string>
+    <string name="settings_widgets_hint">Widget: ajoutez-les depuis l\'écran d\'accueil ou la personnalisation de l\'écran de verrouillage.</string>
+    <string name="settings_add_widget">Épingler le widget à l\'écran d\'accueil</string>
+    <string name="minutes_value">%1$d min</string>
+    <string name="sessions_value">%1$d</string>
+
+    <plurals name="pomodoro_count">
+        <item quantity="one">%1$d pomodoro</item>
+        <item quantity="other">%1$d pomodoros</item>
+    </plurals>
+
+    <string name="notification_channel_name">Fin de phase</string>
+    <string name="notification_channel_description">Prévient quand une session de concentration ou une pause se termine</string>
+    <string name="notification_work_done_title">Pomodoro terminé</string>
+    <string name="notification_short_break_next">Place à une pause de %1$d min.</string>
+    <string name="notification_long_break_next">Bravo ! Offrez-vous une pause longue de %1$d min.</string>
+    <string name="notification_break_done_title">Pause terminée</string>
+    <string name="notification_break_done_message">C’est reparti pour la concentration.</string>
+</resources>
