@@ -98,9 +98,10 @@ boutons-icônes de part et d'autre du minuteur, afin de rester lisibles sur
 l'écran rond.
 
 Quand la montre passe en veille, elle reste sur un écran ambiant minimal
-(fond noir, compteur mm:ss, phase et statut, sans boutons) au lieu de revenir
-au cadran. L'écran est rafraîchi toutes les 15 secondes, en complément du
-rafraîchissement système (environ une fois par minute).
+(fond noir, mode et état, sans boutons ni décompte) au lieu de revenir au
+cadran. Le décompte a été retiré de la veille : son affichage sautait au
+passage en veille. L'écran est rafraîchi toutes les 15 secondes, en complément
+du rafraîchissement système (environ une fois par minute).
 
 Prérequis :
 

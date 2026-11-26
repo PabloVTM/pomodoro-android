@@ -364,21 +364,20 @@ private fun TimerView(
 }
 
 @Composable
-private fun AmbientTimerContent(state: WearTimerState, tick: Int, offline: Boolean) {
+private fun AmbientTimerContent(
+    state: WearTimerState,
+    @Suppress("UNUSED_PARAMETER") tick: Int,
+    offline: Boolean,
+) {
+    // Écran de veille minimal : uniquement le mode et l'état. Pas de décompte,
+    // dont l'affichage sautait au passage en veille. `tick` sert seulement à
+    // forcer une recomposition régulière pour refléter les changements reçus
+    // du téléphone (le système fige sinon l'affichage pendant la veille).
     val accent = phaseAccent(state.phase, dark = true)
-    // `tick` est incrémenté par le système (environ 1/min) et par le
-    // rafraîchissement régulier de l'écran de veille (toutes les 15 s).
-    val now = remember(tick) { System.currentTimeMillis() }
-    val remaining = if (state.isRunning) {
-        (state.endAtLocalMillis - now).coerceAtLeast(0L)
-    } else {
-        state.remainingMillis
-    }
-    val clock = formatClock(remaining)
     val status = when {
         offline -> R.string.wear_status_offline
         state.isRunning -> R.string.wear_status_running
-        remaining == state.totalMillis -> R.string.wear_status_ready
+        state.remainingMillis == state.totalMillis -> R.string.wear_status_ready
         else -> R.string.wear_status_paused
     }
 
@@ -391,26 +390,17 @@ private fun AmbientTimerContent(state: WearTimerState, tick: Int, offline: Boole
     ) {
         Text(
             text = "[ ${stringResource(state.phase.labelRes).lowercase(Locale.getDefault())} ]",
-            color = accent.copy(alpha = 0.85f),
-            fontSize = 14.sp,
+            color = accent.copy(alpha = 0.9f),
+            fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
         )
 
-        Spacer(Modifier.height(10.dp))
-
-        Text(
-            text = clock,
-            color = AmbientPrimary,
-            fontFamily = FontFamily.Monospace,
-            fontSize = 62.sp,
-        )
-
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(12.dp))
 
         Text(
             text = "> ${stringResource(status).lowercase(Locale.getDefault())}",
-            color = if (offline) VermillionLight else AmbientSecondary,
-            fontSize = 12.sp,
+            color = if (offline) VermillionLight else AmbientPrimary,
+            fontSize = 16.sp,
         )
     }
 }
