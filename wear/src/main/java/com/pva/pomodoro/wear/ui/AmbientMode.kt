@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableIntStateOf
@@ -13,10 +14,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LifecycleOwner
 import androidx.wear.ambient.AmbientLifecycleObserver
+import kotlinx.coroutines.delay
 
 /**
- * État du mode ambiant (écran en veille) et compteur de rafraîchissement :
- * le système n'appelle `onUpdateAmbient` qu'environ une fois par minute.
+ * Intervalle de rafraîchissement de l'écran de veille. Le système ne rafraîchit
+ * sinon qu'environ une fois par minute via `onUpdateAmbient`.
+ */
+private const val AMBIENT_REFRESH_INTERVAL_MS = 15_000L
+
+/**
+ * État du mode ambiant (écran en veille) et compteur de rafraîchissement.
  */
 @Stable
 class AmbientModeState internal constructor(
@@ -52,6 +59,15 @@ fun rememberAmbientMode(): AmbientModeState {
         val observer = AmbientLifecycleObserver(activity, callback)
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    val inAmbient = isAmbient.value
+    LaunchedEffect(inAmbient) {
+        if (!inAmbient) return@LaunchedEffect
+        while (true) {
+            delay(AMBIENT_REFRESH_INTERVAL_MS)
+            tick.intValue += 1
+        }
     }
 
     return remember(isAmbient, tick) { AmbientModeState(isAmbient, tick) }

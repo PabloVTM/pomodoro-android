@@ -99,8 +99,8 @@ l'écran rond.
 
 Quand la montre passe en veille, elle reste sur un écran ambiant minimal
 (fond noir, compteur mm:ss, phase et statut, sans boutons) au lieu de revenir
-au cadran. L'écran est rafraîchi une fois par minute pour économiser la
-batterie.
+au cadran. L'écran est rafraîchi toutes les 15 secondes, en complément du
+rafraîchissement système (environ une fois par minute).
 
 Prérequis :
 

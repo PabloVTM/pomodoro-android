@@ -366,7 +366,8 @@ private fun TimerView(
 @Composable
 private fun AmbientTimerContent(state: WearTimerState, tick: Int, offline: Boolean) {
     val accent = phaseAccent(state.phase, dark = true)
-    // Une seule actualisation par minute est fournie par le système.
+    // `tick` est incrémenté par le système (environ 1/min) et par le
+    // rafraîchissement régulier de l'écran de veille (toutes les 15 s).
     val now = remember(tick) { System.currentTimeMillis() }
     val remaining = if (state.isRunning) {
         (state.endAtLocalMillis - now).coerceAtLeast(0L)
