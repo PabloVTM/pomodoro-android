@@ -100,8 +100,8 @@ l'écran rond.
 Quand la montre passe en veille, elle reste sur un écran ambiant minimal
 (fond noir, mode et état, sans boutons ni décompte) au lieu de revenir au
 cadran. Le décompte a été retiré de la veille : son affichage sautait au
-passage en veille. L'écran est rafraîchi toutes les 15 secondes, en complément
-du rafraîchissement système (environ une fois par minute).
+passage en veille. L'écran se met à jour aux changements d'état reçus du
+téléphone, en plus du rafraîchissement système (environ une fois par minute).
 
 Prérequis :
 

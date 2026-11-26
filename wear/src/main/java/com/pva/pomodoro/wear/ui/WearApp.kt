@@ -370,9 +370,9 @@ private fun AmbientTimerContent(
     offline: Boolean,
 ) {
     // Écran de veille minimal : uniquement le mode et l'état. Pas de décompte,
-    // dont l'affichage sautait au passage en veille. `tick` sert seulement à
-    // forcer une recomposition régulière pour refléter les changements reçus
-    // du téléphone (le système fige sinon l'affichage pendant la veille).
+    // dont l'affichage sautait au passage en veille. L'affichage suit les
+    // changements d'état reçus du téléphone ; `tick` (incrémenté par le système
+    // environ 1/min) force en plus un rafraîchissement à cette cadence.
     val accent = phaseAccent(state.phase, dark = true)
     val status = when {
         offline -> R.string.wear_status_offline
