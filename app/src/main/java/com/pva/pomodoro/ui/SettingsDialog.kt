@@ -94,6 +94,12 @@ fun SettingsDialog(
                     onCheckedChange = { onSettingsChange(settings.copy(soundEnabled = it)) },
                 )
                 SwitchRow(
+                    title = stringResource(R.string.settings_vibration),
+                    subtitle = stringResource(R.string.settings_vibration_desc),
+                    checked = settings.vibrationEnabled,
+                    onCheckedChange = { onSettingsChange(settings.copy(vibrationEnabled = it)) },
+                )
+                SwitchRow(
                     title = stringResource(R.string.settings_notifications),
                     subtitle = stringResource(R.string.settings_notifications_desc),
                     checked = settings.notificationsEnabled,

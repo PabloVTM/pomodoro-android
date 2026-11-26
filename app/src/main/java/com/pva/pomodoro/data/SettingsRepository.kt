@@ -17,6 +17,7 @@ class SettingsRepository(context: Context) {
             sessionsBeforeLongBreak = prefs.getInt(KEY_SESSIONS, 4),
             autoStartNext = prefs.getBoolean(KEY_AUTO_START, true),
             soundEnabled = prefs.getBoolean(KEY_SOUND, true),
+            vibrationEnabled = prefs.getBoolean(KEY_VIBRATION, true),
             notificationsEnabled = prefs.getBoolean(KEY_NOTIFICATIONS, true),
         )
 
@@ -28,6 +29,7 @@ class SettingsRepository(context: Context) {
             putInt(KEY_SESSIONS, settings.sessionsBeforeLongBreak)
             putBoolean(KEY_AUTO_START, settings.autoStartNext)
             putBoolean(KEY_SOUND, settings.soundEnabled)
+            putBoolean(KEY_VIBRATION, settings.vibrationEnabled)
             putBoolean(KEY_NOTIFICATIONS, settings.notificationsEnabled)
         }
     }
@@ -40,6 +42,7 @@ class SettingsRepository(context: Context) {
         const val KEY_SESSIONS = "sessions_before_long_break"
         const val KEY_AUTO_START = "auto_start_next"
         const val KEY_SOUND = "sound_enabled"
+        const val KEY_VIBRATION = "vibration_enabled"
         const val KEY_NOTIFICATIONS = "notifications_enabled"
     }
 }

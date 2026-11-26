@@ -23,5 +23,7 @@ object WearProtocol {
     const val KEY_SHORT_BREAK_MIN = "shortBreakMin"
     const val KEY_LONG_BREAK_MIN = "longBreakMin"
     const val KEY_SESSIONS = "sessions"
+    const val KEY_SOUND = "sound"
+    const val KEY_VIBRATION = "vibration"
     const val KEY_UPDATED_AT = "updatedAt"
 }

@@ -23,6 +23,11 @@ import com.pva.pomodoro.util.formatClock
 class PomodoroNotifier(private val context: Context) {
 
     init {
+        // Retire l'ancien canal (vibration gérée par l'application désormais).
+        runCatching {
+            context.getSystemService(NotificationManager::class.java)
+                ?.deleteNotificationChannel(CHANNEL_COMPLETION_LEGACY_ID)
+        }
         createChannel(
             id = CHANNEL_COMPLETION_ID,
             name = R.string.notification_channel_name,
@@ -30,7 +35,10 @@ class PomodoroNotifier(private val context: Context) {
             importance = NotificationManager.IMPORTANCE_HIGH,
         ) {
             setSound(null, null)
-            enableVibration(true)
+            // La vibration est gérée par l'application (VibrationPlayer) afin de
+            // fonctionner même sans notifications et de rester pilotable par le
+            // réglage « Vibration ».
+            enableVibration(false)
         }
         createChannel(
             id = CHANNEL_TIMER_ID,
@@ -161,7 +169,8 @@ class PomodoroNotifier(private val context: Context) {
     }
 
     private companion object {
-        const val CHANNEL_COMPLETION_ID = "pomodoro_completion_v1"
+        const val CHANNEL_COMPLETION_ID = "pomodoro_completion_v2"
+        const val CHANNEL_COMPLETION_LEGACY_ID = "pomodoro_completion_v1"
         const val CHANNEL_TIMER_ID = "pomodoro_timer_v1"
         const val NOTIFICATION_COMPLETION_ID = 1
         const val NOTIFICATION_TIMER_ID = 2

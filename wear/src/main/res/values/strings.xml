@@ -17,5 +17,7 @@
     <string name="wear_action_skip">Passer</string>
 
     <string name="wear_waiting">En attente du téléphone</string>
-    <string name="wear_pomodoro_count">%1$d pomodoro</string>
+
+    <string name="wear_ongoing_text">Minuteur en cours</string>
+    <string name="wear_ongoing_channel">Minuteur</string>
 </resources>

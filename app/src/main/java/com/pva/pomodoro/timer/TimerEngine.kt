@@ -10,6 +10,7 @@ import com.pva.pomodoro.model.PomodoroSettings
 import com.pva.pomodoro.model.TimerState
 import com.pva.pomodoro.system.PomodoroNotifier
 import com.pva.pomodoro.system.TonePlayer
+import com.pva.pomodoro.system.VibrationPlayer
 import com.pva.pomodoro.sync.WearStatePublisher
 import com.pva.pomodoro.widget.WidgetUpdater
 import kotlinx.coroutines.CoroutineScope
@@ -34,6 +35,7 @@ class TimerEngine private constructor(private val context: Context) {
     private val store = TimerStateStore(context)
     private val notifier = PomodoroNotifier(context)
     private val tonePlayer = TonePlayer()
+    private val vibrationPlayer = VibrationPlayer(context)
 
     private val restored = store.load()
     private val overdueAtStart = restored.isRunning &&
@@ -190,6 +192,7 @@ class TimerEngine private constructor(private val context: Context) {
                 "Fin de phase, alerte sur ${if (alertOnPhone) "le téléphone" else "la montre"}",
             )
             if (settings.soundEnabled && alertOnPhone) tonePlayer.playCompletion()
+            if (settings.vibrationEnabled && alertOnPhone) vibrationPlayer.playCompletion()
             if (settings.notificationsEnabled && alertOnPhone) {
                 notifyPhaseComplete(current.phase, nextPhase, settings)
             }

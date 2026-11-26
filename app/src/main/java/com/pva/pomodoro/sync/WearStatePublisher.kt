@@ -35,6 +35,8 @@ object WearStatePublisher {
             dataMap.putInt(WearProtocol.KEY_SHORT_BREAK_MIN, state.settings.shortBreakMinutes)
             dataMap.putInt(WearProtocol.KEY_LONG_BREAK_MIN, state.settings.longBreakMinutes)
             dataMap.putInt(WearProtocol.KEY_SESSIONS, state.settings.sessionsBeforeLongBreak)
+            dataMap.putBoolean(WearProtocol.KEY_SOUND, state.settings.soundEnabled)
+            dataMap.putBoolean(WearProtocol.KEY_VIBRATION, state.settings.vibrationEnabled)
             dataMap.putLong(WearProtocol.KEY_UPDATED_AT, now)
         }.asPutDataRequest().setUrgent()
 
@@ -53,6 +55,8 @@ object WearStatePublisher {
         append(state.settings.shortBreakMinutes).append('|')
         append(state.settings.longBreakMinutes).append('|')
         append(state.settings.sessionsBeforeLongBreak)
+        append('|').append(state.settings.soundEnabled)
+        append('|').append(state.settings.vibrationEnabled)
         if (!state.isRunning) {
             append('|').append(state.remainingMillis)
         }

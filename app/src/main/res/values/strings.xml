@@ -25,6 +25,8 @@
     <string name="settings_auto_start_desc">Démarrer automatiquement la phase suivante</string>
     <string name="settings_sound">Son de fin de phase</string>
     <string name="settings_sound_desc">Jouer un bip à la fin de chaque phase</string>
+    <string name="settings_vibration">Vibration de fin de phase</string>
+    <string name="settings_vibration_desc">Vibrer à la fin de chaque phase (téléphone et montre)</string>
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_desc">Alerte de fin de phase et décompte permanent dans la barre d\'état</string>
     <string name="settings_reset_sessions">Remettre le compteur à zéro</string>

@@ -11,7 +11,8 @@ une pause longue toutes les N sessions.
 - Démarrage, pause, réinitialisation et passage à la phase suivante.
 - Enchaînement automatique des phases (option).
 - Compteur de pomodoros et pastilles de progression dans le cycle.
-- Notification et bip à la fin de chaque phase, désactivables séparément.
+- Notification, bip et vibration à la fin de chaque phase, désactivables
+  séparément.
 - Décompte permanent dans la barre d'état pendant une session, avec actions
   pause / réinitialiser / passer.
 - Widget du bureau et widget d'écran verrouillé (selon le launcher), avec
@@ -45,7 +46,7 @@ app/src/main/java/com/pva/pomodoro/
 ├── PomodoroViewModel.kt            # Expose l'état du moteur à Compose
 ├── data/SettingsRepository.kt      # Persistance des réglages
 ├── model/                          # Phases, réglages, cycle, état partagé
-├── system/                         # Notifications et son de fin de phase
+├── system/                         # Notifications, son et vibration de fin de phase
 ├── timer/                          # Moteur, service, alarmes, receivers
 ├── ui/                             # Écran principal, réglages, thème
 ├── widget/                         # Widgets bureau et écran verrouillé
@@ -53,9 +54,11 @@ app/src/main/java/com/pva/pomodoro/
 
 wear/src/main/java/com/pva/pomodoro/wear/
 ├── MainActivity.kt                 # Point d'entrée Wear OS
+├── alarm/                          # Alerte de fin de phase (vibration / bip)
+├── notif/                          # Activité en cours (minuteur visible en veille)
 ├── sync/WearRepository.kt          # Réception d'état et envoi des commandes
 ├── model/                          # État reçu du téléphone
-└── ui/WearApp.kt                   # Interface ronde Compose for Wear OS
+└── ui/                             # Interface ronde, ambiante et écran de veille
 ```
 
 ## Widgets
@@ -84,9 +87,20 @@ un message arrive en retard.
 La montre est aussi l'appareil qui alerte lorsque la session a été lancée
 depuis son écran : elle vibre et bipe à la fin de la phase, et le téléphone
 reste silencieux. Une session lancée depuis le téléphone (interface, widget ou
-notification) est annoncée par le téléphone. L'alerte de la montre est
-programmée par une alarme exacte : elle fonctionne même écran éteint ou
-application en arrière-plan.
+notification) est annoncée par le téléphone. Les réglages « Son » et
+« Vibration » s'appliquent aux deux appareils : couper le son rend aussi la
+montre silencieuse et la montre vibre uniquement si la vibration est activée.
+L'alerte de la montre est programmée par une alarme exacte : elle fonctionne
+même écran éteint ou application en arrière-plan.
+
+L'interface de la montre place les commandes réinitialiser et passer en petits
+boutons-icônes de part et d'autre du minuteur, afin de rester lisibles sur
+l'écran rond.
+
+Quand la montre passe en veille, elle reste sur un écran ambiant minimal
+(fond noir, compteur mm:ss, phase et statut, sans boutons) au lieu de revenir
+au cadran. L'écran est rafraîchi une fois par minute pour économiser la
+batterie.
 
 Prérequis :
 

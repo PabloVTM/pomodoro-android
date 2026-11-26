@@ -8,6 +8,7 @@ data class PomodoroSettings(
     val sessionsBeforeLongBreak: Int = 4,
     val autoStartNext: Boolean = true,
     val soundEnabled: Boolean = true,
+    val vibrationEnabled: Boolean = true,
     val notificationsEnabled: Boolean = true,
 ) {
     fun durationMillis(phase: Phase): Long = when (phase) {

@@ -23,6 +23,8 @@ data class WearTimerState(
     val clockOffsetMillis: Long,
     val completedWorkSessions: Int,
     val sessionsBeforeLongBreak: Int,
+    val soundEnabled: Boolean = true,
+    val vibrationEnabled: Boolean = true,
 ) {
     val endAtLocalMillis: Long
         get() = if (endAtPhoneMillis > 0L) endAtPhoneMillis - clockOffsetMillis else 0L

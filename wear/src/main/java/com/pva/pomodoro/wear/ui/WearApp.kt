@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -26,10 +27,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -40,13 +44,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Colors
+import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
+import androidx.wear.compose.material.TimeTextDefaults
 import androidx.wear.compose.material.Typography
 import com.pva.pomodoro.wear.R
 import com.pva.pomodoro.wear.model.Phase
 import com.pva.pomodoro.wear.model.WearTimerState
+import com.pva.pomodoro.wear.notif.WearOngoingActivity
 import com.pva.pomodoro.wear.sync.WearProtocol
 import com.pva.pomodoro.wear.sync.WearRepository
 import com.pva.pomodoro.wear.util.formatClock
@@ -64,6 +71,10 @@ private val SageLight = Color(0xFFA9C0B2)
 private val VermillionLight = Color(0xFFFF6B5E)
 private val LightSageSurface = Color(0xFFF7F4E9)
 private val DarkSageVariant = Color(0xFFB7C2BA)
+
+// Mode ambiant : noir pur et teintes atténuées pour limiter la consommation.
+private val AmbientPrimary = Color(0xFFD9D3C6)
+private val AmbientSecondary = Color(0xFF8E968F)
 
 private val LightColors = Colors(
     primary = DeepSage,
@@ -114,16 +125,24 @@ fun WearApp() {
     val repository = remember { WearRepository(context) }
     val state by repository.state.collectAsStateWithLifecycle()
     val offline by repository.offline.collectAsStateWithLifecycle()
+    val ambient = rememberAmbientMode()
+    val ongoingActivity = remember { WearOngoingActivity(context) }
 
     DisposableEffect(repository) {
         repository.start()
         onDispose { repository.close() }
     }
 
+    LaunchedEffect(state) {
+        ongoingActivity.update(state)
+    }
+
     WearPomodoroTheme {
         WearTimerScreen(
             state = state,
             offline = offline,
+            ambient = ambient.isAmbient.value,
+            ambientTick = ambient.tick.value,
             onToggle = {
                 val action = if (state?.isRunning == true) {
                     WearProtocol.ACTION_PAUSE
@@ -142,6 +161,8 @@ fun WearApp() {
 private fun WearTimerScreen(
     state: WearTimerState?,
     offline: Boolean,
+    ambient: Boolean,
+    ambientTick: Int,
     onToggle: () -> Unit,
     onReset: () -> Unit,
     onSkip: () -> Unit,
@@ -149,12 +170,17 @@ private fun WearTimerScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colors.background),
+            .background(if (ambient) Color.Black else MaterialTheme.colors.background),
     ) {
         TimeText(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(top = 4.dp),
+            timeTextStyle = if (ambient) {
+                TimeTextDefaults.timeTextStyle(color = AmbientSecondary)
+            } else {
+                TimeTextDefaults.timeTextStyle()
+            },
         )
 
         if (state == null) {
@@ -165,6 +191,8 @@ private fun WearTimerScreen(
         TimerView(
             state = state,
             offline = offline,
+            ambient = ambient,
+            ambientTick = ambientTick,
             onToggle = onToggle,
             onReset = onReset,
             onSkip = onSkip,
@@ -185,7 +213,7 @@ private fun WaitingContent() {
             text = stringResource(R.string.wear_waiting),
             color = MaterialTheme.colors.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            fontSize = 11.sp,
+            fontSize = 14.sp,
         )
     }
 }
@@ -194,10 +222,17 @@ private fun WaitingContent() {
 private fun TimerView(
     state: WearTimerState,
     offline: Boolean,
+    ambient: Boolean,
+    ambientTick: Int,
     onToggle: () -> Unit,
     onReset: () -> Unit,
     onSkip: () -> Unit,
 ) {
+    if (ambient) {
+        AmbientTimerContent(state, ambientTick, offline)
+        return
+    }
+
     val dark = isSystemInDarkTheme()
     val accent = phaseAccent(state.phase, dark)
     val onAccent = if (dark) InkDark else WarmIvory
@@ -235,64 +270,82 @@ private fun TimerView(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(start = 14.dp, end = 14.dp, top = 26.dp, bottom = 6.dp),
+            .padding(start = 12.dp, end = 12.dp, top = 24.dp, bottom = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Top,
     ) {
         Text(
             text = "[ ${stringResource(state.phase.labelRes).lowercase(Locale.getDefault())} ]",
             color = accent,
-            fontSize = 9.sp,
+            fontSize = 13.sp,
             fontWeight = FontWeight.SemiBold,
         )
 
-        Spacer(Modifier.height(3.dp))
+        Spacer(Modifier.height(6.dp))
 
-        Box(
-            modifier = Modifier.size(102.dp),
-            contentAlignment = Alignment.Center,
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                val stroke = 6.dp.toPx()
-                drawArc(
-                    color = trackColor,
-                    startAngle = -90f,
-                    sweepAngle = 360f,
-                    useCenter = false,
-                    style = Stroke(width = stroke, cap = StrokeCap.Round),
-                )
-                drawArc(
-                    color = accent,
-                    startAngle = -90f,
-                    sweepAngle = 360f * progress,
-                    useCenter = false,
-                    style = Stroke(width = stroke, cap = StrokeCap.Round),
-                )
+            CircleIconButton(
+                painter = painterResource(R.drawable.ic_wear_reset),
+                contentDescription = stringResource(R.string.wear_action_reset),
+                onClick = onReset,
+            )
+
+            Box(
+                modifier = Modifier.size(104.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val stroke = 7.dp.toPx()
+                    drawArc(
+                        color = trackColor,
+                        startAngle = -90f,
+                        sweepAngle = 360f,
+                        useCenter = false,
+                        style = Stroke(width = stroke, cap = StrokeCap.Round),
+                    )
+                    drawArc(
+                        color = accent,
+                        startAngle = -90f,
+                        sweepAngle = 360f * progress,
+                        useCenter = false,
+                        style = Stroke(width = stroke, cap = StrokeCap.Round),
+                    )
+                }
+
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = formatClock(remaining),
+                        color = MaterialTheme.colors.onBackground,
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 31.sp,
+                    )
+                    Text(
+                        text = "> ${stringResource(status).lowercase(Locale.getDefault())}",
+                        color = if (offline) MaterialTheme.colors.error
+                        else MaterialTheme.colors.onSurfaceVariant,
+                        fontSize = 11.sp,
+                    )
+                }
             }
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = formatClock(remaining),
-                    color = MaterialTheme.colors.onBackground,
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 25.sp,
-                )
-                Text(
-                    text = "> ${stringResource(status).lowercase(Locale.getDefault())}",
-                    color = if (offline) MaterialTheme.colors.error
-                    else MaterialTheme.colors.onSurfaceVariant,
-                    fontSize = 8.sp,
-                )
-            }
+            CircleIconButton(
+                painter = painterResource(R.drawable.ic_wear_skip),
+                contentDescription = stringResource(R.string.wear_action_skip),
+                onClick = onSkip,
+            )
         }
 
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(8.dp))
 
         Button(
             onClick = onToggle,
             modifier = Modifier
-                .width(142.dp)
-                .height(44.dp),
+                .width(164.dp)
+                .height(48.dp),
             colors = ButtonDefaults.primaryButtonColors(
                 backgroundColor = accent,
                 contentColor = onAccent,
@@ -303,34 +356,85 @@ private fun TimerView(
                     if (state.isRunning) R.string.wear_action_pause
                     else R.string.wear_action_start,
                 ),
-                fontSize = 11.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
             )
-        }
-
-        Spacer(Modifier.height(2.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            ActionLabel(stringResource(R.string.wear_action_reset), onReset)
-            ActionLabel(stringResource(R.string.wear_action_skip), onSkip)
         }
     }
 }
 
 @Composable
-private fun ActionLabel(label: String, onClick: () -> Unit) {
-    Text(
-        text = label,
+private fun AmbientTimerContent(state: WearTimerState, tick: Int, offline: Boolean) {
+    val accent = phaseAccent(state.phase, dark = true)
+    // Une seule actualisation par minute est fournie par le système.
+    val now = remember(tick) { System.currentTimeMillis() }
+    val remaining = if (state.isRunning) {
+        (state.endAtLocalMillis - now).coerceAtLeast(0L)
+    } else {
+        state.remainingMillis
+    }
+    val clock = formatClock(remaining)
+    val status = when {
+        offline -> R.string.wear_status_offline
+        state.isRunning -> R.string.wear_status_running
+        remaining == state.totalMillis -> R.string.wear_status_ready
+        else -> R.string.wear_status_paused
+    }
+
+    Column(
         modifier = Modifier
-            .clickable(onClick = onClick)
-            .padding(horizontal = 6.dp, vertical = 2.dp),
-        color = MaterialTheme.colors.onSurfaceVariant,
-        fontSize = 9.sp,
-    )
+            .fillMaxSize()
+            .padding(horizontal = 20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            text = "[ ${stringResource(state.phase.labelRes).lowercase(Locale.getDefault())} ]",
+            color = accent.copy(alpha = 0.85f),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+        )
+
+        Spacer(Modifier.height(10.dp))
+
+        Text(
+            text = clock,
+            color = AmbientPrimary,
+            fontFamily = FontFamily.Monospace,
+            fontSize = 62.sp,
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        Text(
+            text = "> ${stringResource(status).lowercase(Locale.getDefault())}",
+            color = if (offline) VermillionLight else AmbientSecondary,
+            fontSize = 12.sp,
+        )
+    }
+}
+
+@Composable
+private fun CircleIconButton(
+    painter: Painter,
+    contentDescription: String,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(44.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colors.onBackground.copy(alpha = 0.10f))
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            painter = painter,
+            contentDescription = contentDescription,
+            modifier = Modifier.size(22.dp),
+            tint = MaterialTheme.colors.onSurfaceVariant,
+        )
+    }
 }
 
 private val Phase.labelRes: Int

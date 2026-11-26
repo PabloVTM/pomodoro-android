@@ -8,18 +8,25 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 
-/** Vibration et bip de fin de phase, émis par la montre. */
+/**
+ * Vibration et bip de fin de phase, émis par la montre.
+ *
+ * Les deux sont pilotés par les réglages du téléphone : la montre reste
+ * silencieuse lorsque le son est coupé et ne vibre plus lorsque la vibration
+ * est désactivée.
+ */
 object WearAlerter {
 
-    fun alert(context: Context) {
-        vibrate(context)
-        beep()
+    fun alert(context: Context, vibrate: Boolean = true, beep: Boolean = true) {
+        if (vibrate) vibrate(context)
+        if (beep) beep()
     }
 
     private fun vibrate(context: Context) {
         val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             context.getSystemService(VibratorManager::class.java)?.defaultVibrator
         } else {
+            @Suppress("DEPRECATION")
             context.getSystemService(Vibrator::class.java)
         } ?: return
 

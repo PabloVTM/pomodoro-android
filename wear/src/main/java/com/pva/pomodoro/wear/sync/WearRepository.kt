@@ -159,6 +159,8 @@ class WearRepository(context: Context) {
             clockOffsetMillis = clockOffsetMillis,
             completedWorkSessions = map.getInt(WearProtocol.KEY_COMPLETED),
             sessionsBeforeLongBreak = map.getInt(WearProtocol.KEY_SESSIONS).coerceAtLeast(1),
+            soundEnabled = map.getBoolean(WearProtocol.KEY_SOUND, true),
+            vibrationEnabled = map.getBoolean(WearProtocol.KEY_VIBRATION, true),
         )
         _state.value = state
         alarmScheduler.sync(state)
