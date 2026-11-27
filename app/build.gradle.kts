@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+// Signature release activée uniquement si un keystore est fourni via KEYSTORE_FILE
+// (sinon build non signé : app-release-unsigned.apk).
 val keystoreFile = file(System.getenv("KEYSTORE_FILE") ?: "${rootDir}/keystore.jks")
 val hasReleaseKeystore = keystoreFile.exists()
 

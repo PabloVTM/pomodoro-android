@@ -49,19 +49,22 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
-    - name: Build debug APKs
-      run: ./gradlew assembleDebug
+    # Aucun keystore n'est fourni ici : les APK sont produits non signés
+    # (app-release-unsigned.apk / wear-release-unsigned.apk).
+    # La signature sera activée sur main via le workflow de release.
+    - name: Build unsigned release APKs
+      run: ./gradlew assembleRelease
 
-    - name: Upload phone debug APK
+    - name: Upload phone APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug-apk
-        path: app/build/outputs/apk/debug/app-debug.apk
+        name: app-release-unsigned-apk
+        path: app/build/outputs/apk/release/*.apk
         if-no-files-found: error
 
-    - name: Upload wear debug APK
+    - name: Upload wear APK
       uses: actions/upload-artifact@v4
       with:
-        name: wear-debug-apk
-        path: wear/build/outputs/apk/debug/wear-debug.apk
+        name: wear-release-unsigned-apk
+        path: wear/build/outputs/apk/release/*.apk
         if-no-files-found: error

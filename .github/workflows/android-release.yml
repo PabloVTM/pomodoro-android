@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+# Signature optionnelle : tant que les secrets KEYSTORE / KEYSTORE_PASSWORD /
+# KEY_ALIAS / KEY_PASSWORD ne sont pas définis, les APK sont non signés.
+# Les renseigner (au passage sur main) suffit à activer la signature, sans
+# modifier ce fichier.
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -30,9 +34,14 @@ jobs:
     - name: Run lint
       run: ./gradlew lintDebug
 
-  build-and-sign:
+  build:
     needs: test
     runs-on: ubuntu-latest
+    env:
+      KEYSTORE_BASE64: ${{ secrets.KEYSTORE }}
+      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
     steps:
     - uses: actions/checkout@v4
 
@@ -46,35 +55,26 @@ jobs:
       uses: gradle/actions/setup-gradle@v3
 
     - name: Decode keystore
-      env:
-        KEYSTORE_BASE64: ${{ secrets.KEYSTORE }}
-      run: |
-        if [ -z "$KEYSTORE_BASE64" ]; then
-          echo "::error::Le secret KEYSTORE est manquant ou vide."
-          exit 1
-        fi
-        echo "$KEYSTORE_BASE64" | base64 --decode > keystore.jks
+      if: env.KEYSTORE_BASE64 != ''
+      run: echo "$KEYSTORE_BASE64" | base64 --decode > keystore.jks
 
-    - name: Build and sign release APKs and bundle
+    - name: Build release APKs and bundle
       env:
         KEYSTORE_FILE: ${{ github.workspace }}/keystore.jks
-        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       run: ./gradlew assembleRelease bundleRelease
 
     - name: Upload phone APK
       uses: actions/upload-artifact@v4
       with:
         name: app-release-apk
-        path: app/build/outputs/apk/release/app-release.apk
+        path: app/build/outputs/apk/release/*.apk
         if-no-files-found: error
 
     - name: Upload wear APK
       uses: actions/upload-artifact@v4
       with:
         name: wear-release-apk
-        path: wear/build/outputs/apk/release/wear-release.apk
+        path: wear/build/outputs/apk/release/*.apk
         if-no-files-found: error
 
     - name: Upload Android App Bundle
@@ -93,8 +93,8 @@ jobs:
         draft: false
         prerelease: false
         files: |
-          app/build/outputs/apk/release/app-release.apk
-          wear/build/outputs/apk/release/wear-release.apk
+          app/build/outputs/apk/release/*.apk
+          wear/build/outputs/apk/release/*.apk
           app/build/outputs/bundle/release/app-release.aab
 
     - name: Clean up keystore
