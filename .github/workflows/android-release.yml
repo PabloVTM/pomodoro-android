@@ -1,0 +1,104 @@
+name: Android Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      
+    - name: Run tests
+      run: ./gradlew test
+      
+    - name: Run lint
+      run: ./gradlew lint
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      
+    - name: Build APKs
+      run: ./gradlew assembleRelease
+      
+    - name: Upload phone APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-release-apk
+        path: app/build/outputs/apk/release/app-release.apk
+        
+    - name: Upload wear APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: wear-release-apk
+        path: wear/build/outputs/apk/release/wear-release.apk
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
+    steps:
+    - name: Download phone APK
+      uses: actions/download-artifact@v4
+      with:
+        name: app-release-apk
+        path: app-release
+        
+    - name: Download wear APK
+      uses: actions/download-artifact@v4
+      with:
+        name: wear-release-apk
+        path: wear-release
+        
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+        
+    - name: Upload phone APK to Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: app-release/app-release.apk
+        asset_name: pomodoro-app-${{ github.ref }}.apk
+        asset_content_type: application/vnd.android.package-archive
+        
+    - name: Upload wear APK to Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: wear-release/wear-release.apk
+        asset_name: pomodoro-wear-${{ github.ref }}.apk
+        asset_content_type: application/vnd.android.package-archive
