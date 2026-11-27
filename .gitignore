@@ -13,4 +13,8 @@
 *.apk
 *.aab
 *.keystore
+*.jks
 !debug.keystore
+.env
+.env.*
+google-services.json

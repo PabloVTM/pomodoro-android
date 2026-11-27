@@ -106,7 +106,8 @@ téléphone, en plus du rafraîchissement système (environ une fois par minute)
 Prérequis :
 
 - même identifiant `com.pva.pomodoro` installé sur les deux appareils ;
-- Google Play services sur le téléphone (ou un bac à sable Play services) et sur la montre ;
+- Google Play services sur le téléphone (ou un bac à sable Play services) et
+  sur la montre ;
 - montre et téléphone connectés en Bluetooth ou sur le même réseau Wi-Fi.
 
 ```bash
