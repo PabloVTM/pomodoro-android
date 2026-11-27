@@ -1,11 +1,7 @@
 package com.pva.pomodoro.wear.model
 
-/** Phases partagées avec le téléphone (mêmes noms sérialisés). */
-enum class Phase {
-    WORK,
-    SHORT_BREAK,
-    LONG_BREAK,
-}
+/** Phase partagée avec le téléphone (`:shared`). */
+typealias Phase = com.pva.pomodoro.shared.Phase
 
 /**
  * État du minuteur reçu du téléphone.

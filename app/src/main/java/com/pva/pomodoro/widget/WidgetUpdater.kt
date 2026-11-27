@@ -11,11 +11,12 @@ import android.widget.RemoteViews
 import androidx.core.content.ContextCompat
 import com.pva.pomodoro.R
 import com.pva.pomodoro.model.Phase
+import com.pva.pomodoro.model.labelRes
 import com.pva.pomodoro.model.TimerState
 import com.pva.pomodoro.timer.TimerActionReceiver
 import com.pva.pomodoro.timer.TimerActions
 import com.pva.pomodoro.timer.TimerStateStore
-import com.pva.pomodoro.util.formatClock
+import com.pva.pomodoro.shared.formatClock
 import java.util.Locale
 
 /** Construit et rafraîchit les RemoteViews des widgets bureau et verrouillage. */
@@ -77,7 +78,7 @@ object WidgetUpdater {
         }
 
         if (showDots) {
-            val total = state.settings.sessionsBeforeLongBreak
+            val total = state.settings.sessionsBeforeLongBreak.coerceAtLeast(1)
             val filled = if (state.phase == Phase.LONG_BREAK) {
                 total
             } else {

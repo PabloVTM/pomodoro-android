@@ -2,7 +2,7 @@ package com.pva.pomodoro.ui
 
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
-import androidx.compose.foundation.clickable
+import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -22,7 +22,10 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,8 +33,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.pva.pomodoro.R
 import com.pva.pomodoro.model.PomodoroSettings
+import com.pva.pomodoro.timer.AlarmScheduler
 import com.pva.pomodoro.widget.PomodoroWidgetProvider
 
 /** Réglages des durées et du comportement du minuteur. Les changements sont appliqués immédiatement. */
@@ -105,6 +110,8 @@ fun SettingsDialog(
                     checked = settings.notificationsEnabled,
                     onCheckedChange = { onSettingsChange(settings.copy(notificationsEnabled = it)) },
                 )
+
+                ExactAlarmRow()
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
@@ -210,7 +217,6 @@ private fun SwitchRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) }
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -228,5 +234,59 @@ private fun SwitchRow(
             )
         }
         Switch(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}
+
+/**
+ * Sur Android 12 et 12L (API 31–32), la permission `SCHEDULE_EXACT_ALARM`
+ * n'est pas accordée par défaut : on propose à l'utilisateur de l'activer,
+ * faute de quoi le minuteur retombe sur des alarmes inexactes.
+ */
+@Composable
+private fun ExactAlarmRow() {
+    // Seuls Android 12 et 12L (API 31–32) exigent l'accord explicite de
+    // l'utilisateur : à partir d'Android 13, `USE_EXACT_ALARM` l'accorde.
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) return
+
+    val context = LocalContext.current
+    var granted by remember { mutableStateOf(AlarmScheduler.canScheduleExact(context)) }
+    LifecycleResumeEffect(Unit) {
+        granted = AlarmScheduler.canScheduleExact(context)
+        onPauseOrDispose { }
+    }
+    if (granted) return
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 12.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.settings_exact_alarm),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            Text(
+                text = stringResource(R.string.settings_exact_alarm_desc),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        TextButton(
+            onClick = {
+                runCatching {
+                    context.startActivity(AlarmScheduler.requestExactAlarmPermissionIntent(context))
+                }
+            },
+        ) {
+            Text(stringResource(R.string.settings_exact_alarm_action))
+        }
     }
 }

@@ -14,7 +14,7 @@ class SettingsRepository(context: Context) {
             workMinutes = prefs.getInt(KEY_WORK, 25),
             shortBreakMinutes = prefs.getInt(KEY_SHORT_BREAK, 5),
             longBreakMinutes = prefs.getInt(KEY_LONG_BREAK, 15),
-            sessionsBeforeLongBreak = prefs.getInt(KEY_SESSIONS, 4),
+            sessionsBeforeLongBreak = prefs.getInt(KEY_SESSIONS, 4).coerceAtLeast(1),
             autoStartNext = prefs.getBoolean(KEY_AUTO_START, true),
             soundEnabled = prefs.getBoolean(KEY_SOUND, true),
             vibrationEnabled = prefs.getBoolean(KEY_VIBRATION, true),

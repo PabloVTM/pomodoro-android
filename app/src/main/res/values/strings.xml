@@ -29,6 +29,9 @@
     <string name="settings_vibration_desc">Vibrer à la fin de chaque phase (téléphone et montre)</string>
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_desc">Alerte de fin de phase et décompte permanent dans la barre d\'état</string>
+    <string name="settings_exact_alarm">Alarmes exactes</string>
+    <string name="settings_exact_alarm_desc">Sans cette autorisation, le minuteur peut sonner en retard en arrière-plan.</string>
+    <string name="settings_exact_alarm_action">Autoriser</string>
     <string name="settings_reset_sessions">Remettre le compteur à zéro</string>
     <string name="settings_widgets_hint">Widget: ajoutez-les depuis l\'écran d\'accueil ou la personnalisation de l\'écran de verrouillage.</string>
     <string name="settings_add_widget">Épingler le widget à l\'écran d\'accueil</string>

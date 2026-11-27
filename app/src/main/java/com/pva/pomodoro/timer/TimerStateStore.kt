@@ -3,6 +3,7 @@ package com.pva.pomodoro.timer
 import android.content.Context
 import androidx.core.content.edit
 import com.pva.pomodoro.data.SettingsRepository
+import com.pva.pomodoro.model.CommandOrigin
 import com.pva.pomodoro.model.Phase
 import com.pva.pomodoro.model.TimerState
 
@@ -25,6 +26,12 @@ class TimerStateStore(context: Context) {
         } else {
             prefs.getLong(KEY_REMAINING, total)
         }
+        val commandOrigin = runCatching {
+            CommandOrigin.valueOf(
+                prefs.getString(KEY_COMMAND_ORIGIN, CommandOrigin.PHONE.name)
+                    ?: CommandOrigin.PHONE.name,
+            )
+        }.getOrDefault(CommandOrigin.PHONE)
         return TimerState(
             phase = phase,
             remainingMillis = remaining,
@@ -33,6 +40,7 @@ class TimerStateStore(context: Context) {
             endAtMillis = endAt,
             completedWorkSessions = prefs.getInt(KEY_COMPLETED, 0),
             settings = settings,
+            commandOrigin = commandOrigin,
         )
     }
 
@@ -44,6 +52,7 @@ class TimerStateStore(context: Context) {
             putBoolean(KEY_RUNNING, state.isRunning)
             putLong(KEY_END_AT, state.endAtMillis ?: 0L)
             putInt(KEY_COMPLETED, state.completedWorkSessions)
+            putString(KEY_COMMAND_ORIGIN, state.commandOrigin.name)
         }
     }
 
@@ -55,5 +64,6 @@ class TimerStateStore(context: Context) {
         const val KEY_RUNNING = "is_running"
         const val KEY_END_AT = "end_at_millis"
         const val KEY_COMPLETED = "completed_sessions"
+        const val KEY_COMMAND_ORIGIN = "command_origin"
     }
 }

@@ -9,18 +9,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import com.pva.pomodoro.model.Phase
+import com.pva.pomodoro.shared.Palette
 
 /** Palette PabloSystems : sauge profonde, ivoire chaud, vermillon vif. */
-val DeepSage = Color(0xFF4B5A50)
-val WarmIvory = Color(0xFFF1EEE3)
-val Vermillion = Color(0xFFF20B0B)
+val DeepSage = Color(Palette.DEEP_SAGE)
+val WarmIvory = Color(Palette.WARM_IVORY)
+val Vermillion = Color(Palette.VERMILLION)
 
-private val InkLight = Color(0xFF2B332D)
-private val InkDark = Color(0xFF111512)
-private val SurfaceDark = Color(0xFF1A201C)
+private val InkLight = Color(Palette.INK_LIGHT)
+private val InkDark = Color(Palette.INK_DARK)
+private val SurfaceDark = Color(Palette.SURFACE_DARK)
 private val SurfaceVariantDark = Color(0xFF2A332D)
-private val SageLight = Color(0xFFA9C0B2)
-private val VermillionLight = Color(0xFFFF6B5E)
+private val SageLight = Color(Palette.SAGE_LIGHT)
+private val VermillionLight = Color(Palette.VERMILLION_LIGHT)
 
 private val LightColors = lightColorScheme(
     primary = DeepSage,

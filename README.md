@@ -41,6 +41,12 @@ police système monospace et invite `pablo@systems:~/pomodoro` en titre.
 ## Structure du projet
 
 ```
+shared/src/main/kotlin/com/pva/pomodoro/shared/
+├── Phase.kt                        # Phases partagées téléphone / montre
+├── TimeFormat.kt                   # formatClock partagé
+├── WearProtocol.kt                 # Protocole de synchronisation commun
+└── Palette.kt                      # Couleurs PabloSystems communes
+
 app/src/main/java/com/pva/pomodoro/
 ├── MainActivity.kt                 # Point d'entrée, thème edge-to-edge
 ├── PomodoroViewModel.kt            # Expose l'état du moteur à Compose
@@ -56,10 +62,14 @@ wear/src/main/java/com/pva/pomodoro/wear/
 ├── MainActivity.kt                 # Point d'entrée Wear OS
 ├── alarm/                          # Alerte de fin de phase (vibration / bip)
 ├── notif/                          # Activité en cours (minuteur visible en veille)
-├── sync/WearRepository.kt          # Réception d'état et envoi des commandes
+├── sync/                           # Réception d'état, service de fond, horloges
 ├── model/                          # État reçu du téléphone
 └── ui/                             # Interface ronde, ambiante et écran de veille
 ```
+
+Le module `:shared` est une bibliothèque Kotlin/JVM pure : `Phase`, `formatClock`,
+`WearProtocol` et la palette y vivent une seule fois, ce qui élimine les
+duplications et les risques de divergence de protocole entre les deux applications.
 
 ## Widgets
 
@@ -91,7 +101,11 @@ notification) est annoncée par le téléphone. Les réglages « Son » et
 « Vibration » s'appliquent aux deux appareils : couper le son rend aussi la
 montre silencieuse et la montre vibre uniquement si la vibration est activée.
 L'alerte de la montre est programmée par une alarme exacte : elle fonctionne
-même écran éteint ou application en arrière-plan.
+même écran éteint ou application en arrière-plan. Un service d'écoute
+(`WearStateListenerService`) reçoit les changements d'état du téléphone même
+lorsque l'application montre n'est pas ouverte et réarme l'alarme à chaque
+phase, ce qui évite de perdre le bip de fin de phase après une mort du
+processus.
 
 L'interface de la montre place les commandes réinitialiser et passer en petits
 boutons-icônes de part et d'autre du minuteur, afin de rester lisibles sur
@@ -101,7 +115,7 @@ Quand la montre passe en veille, elle reste sur un écran ambiant minimal
 (fond noir, mode et état, sans boutons ni décompte) au lieu de revenir au
 cadran. Le décompte a été retiré de la veille : son affichage sautait au
 passage en veille. L'écran se met à jour aux changements d'état reçus du
-téléphone, en plus du rafraîchissement système (environ une fois par minute).
+téléphone.
 
 Prérequis :
 
@@ -144,8 +158,9 @@ Ou ouvrir le dossier dans Android Studio et lancer la configuration `app`.
 ./gradlew testDebugUnitTest lintDebug
 ```
 
-Les tests unitaires couvrent les règles d'enchaînement des phases et la
-conversion des durées.
+Les tests unitaires couvrent les règles d'enchaînement des phases, la
+conversion des durées, les transitions d'état du minuteur, le recalcul
+proportionnel des durées et le calcul du décalage d'horloge téléphone / montre.
 
 ## Limites connues
 
@@ -159,6 +174,9 @@ conversion des durées.
   services sandboxés.
 - Une session lancée depuis la montre n'est annoncée que par celle-ci : si la
   montre est éteinte, déchargée ou déconnectée, le téléphone reste silencieux.
+- Sur Android 12 et 12L (API 31–32), l'autorisation « Alarmes exactes » doit
+  être accordée depuis les réglages de l'application ; sans elle, les alertes
+  peuvent être différées par le système.
 - La notification persistante ne peut pas être supprimée manuellement pendant
   une session : c'est une exigence d'Android pour les services de premier plan.
   Le réglage « Notifications » coupe les alertes et le service permanent.

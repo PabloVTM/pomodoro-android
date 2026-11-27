@@ -56,19 +56,20 @@ import com.pva.pomodoro.wear.model.WearTimerState
 import com.pva.pomodoro.wear.notif.WearOngoingActivity
 import com.pva.pomodoro.wear.sync.WearProtocol
 import com.pva.pomodoro.wear.sync.WearRepository
-import com.pva.pomodoro.wear.util.formatClock
+import com.pva.pomodoro.shared.Palette
+import com.pva.pomodoro.shared.formatClock
 import java.util.Locale
 import kotlinx.coroutines.delay
 
 // Palette PabloSystems : sauge profonde, ivoire chaud, vermillon vif.
-private val DeepSage = Color(0xFF4B5A50)
-private val WarmIvory = Color(0xFFF1EEE3)
-private val Vermillion = Color(0xFFF20B0B)
-private val InkLight = Color(0xFF2B332D)
-private val InkDark = Color(0xFF111512)
-private val SurfaceDark = Color(0xFF1A201C)
-private val SageLight = Color(0xFFA9C0B2)
-private val VermillionLight = Color(0xFFFF6B5E)
+private val DeepSage = Color(Palette.DEEP_SAGE)
+private val WarmIvory = Color(Palette.WARM_IVORY)
+private val Vermillion = Color(Palette.VERMILLION)
+private val InkLight = Color(Palette.INK_LIGHT)
+private val InkDark = Color(Palette.INK_DARK)
+private val SurfaceDark = Color(Palette.SURFACE_DARK)
+private val SageLight = Color(Palette.SAGE_LIGHT)
+private val VermillionLight = Color(Palette.VERMILLION_LIGHT)
 private val LightSageSurface = Color(0xFFF7F4E9)
 private val DarkSageVariant = Color(0xFFB7C2BA)
 
@@ -142,7 +143,6 @@ fun WearApp() {
             state = state,
             offline = offline,
             ambient = ambient.isAmbient.value,
-            ambientTick = ambient.tick.value,
             onToggle = {
                 val action = if (state?.isRunning == true) {
                     WearProtocol.ACTION_PAUSE
@@ -162,7 +162,6 @@ private fun WearTimerScreen(
     state: WearTimerState?,
     offline: Boolean,
     ambient: Boolean,
-    ambientTick: Int,
     onToggle: () -> Unit,
     onReset: () -> Unit,
     onSkip: () -> Unit,
@@ -192,7 +191,6 @@ private fun WearTimerScreen(
             state = state,
             offline = offline,
             ambient = ambient,
-            ambientTick = ambientTick,
             onToggle = onToggle,
             onReset = onReset,
             onSkip = onSkip,
@@ -223,13 +221,12 @@ private fun TimerView(
     state: WearTimerState,
     offline: Boolean,
     ambient: Boolean,
-    ambientTick: Int,
     onToggle: () -> Unit,
     onReset: () -> Unit,
     onSkip: () -> Unit,
 ) {
     if (ambient) {
-        AmbientTimerContent(state, ambientTick, offline)
+        AmbientTimerContent(state, offline)
         return
     }
 
@@ -366,13 +363,11 @@ private fun TimerView(
 @Composable
 private fun AmbientTimerContent(
     state: WearTimerState,
-    @Suppress("UNUSED_PARAMETER") tick: Int,
     offline: Boolean,
 ) {
     // Écran de veille minimal : uniquement le mode et l'état. Pas de décompte,
     // dont l'affichage sautait au passage en veille. L'affichage suit les
-    // changements d'état reçus du téléphone ; `tick` (incrémenté par le système
-    // environ 1/min) force en plus un rafraîchissement à cette cadence.
+    // changements d'état reçus du téléphone.
     val accent = phaseAccent(state.phase, dark = true)
     val status = when {
         offline -> R.string.wear_status_offline

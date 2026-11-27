@@ -7,6 +7,7 @@
 /build
 /app/build
 /wear/build
+/shared/build
 /captures
 .externalNativeBuild
 .cxx
@@ -18,3 +19,4 @@
 .env
 .env.*
 google-services.json
+dev/

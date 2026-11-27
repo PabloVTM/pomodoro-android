@@ -15,9 +15,10 @@ import androidx.core.content.ContextCompat
 import com.pva.pomodoro.MainActivity
 import com.pva.pomodoro.R
 import com.pva.pomodoro.model.TimerState
+import com.pva.pomodoro.model.labelRes
 import com.pva.pomodoro.timer.TimerActionReceiver
 import com.pva.pomodoro.timer.TimerActions
-import com.pva.pomodoro.util.formatClock
+import com.pva.pomodoro.shared.formatClock
 
 /** Notifications de fin de phase et de minuteur en cours. */
 class PomodoroNotifier(private val context: Context) {

@@ -4,10 +4,11 @@ import android.content.Context
 import android.util.Log
 import com.pva.pomodoro.R
 import com.pva.pomodoro.data.SettingsRepository
+import com.pva.pomodoro.model.CommandOrigin
 import com.pva.pomodoro.model.Phase
-import com.pva.pomodoro.model.PomodoroCycle
 import com.pva.pomodoro.model.PomodoroSettings
 import com.pva.pomodoro.model.TimerState
+import com.pva.pomodoro.model.TimerTransitions
 import com.pva.pomodoro.system.PomodoroNotifier
 import com.pva.pomodoro.system.TonePlayer
 import com.pva.pomodoro.system.VibrationPlayer
@@ -46,12 +47,6 @@ class TimerEngine private constructor(private val context: Context) {
 
     private var tickerJob: Job? = null
 
-    /**
-     * Dernière commande reçue. Quand une session est pilotée depuis la montre,
-     * c'est elle qui alerte et le téléphone reste silencieux.
-     */
-    private var commandOrigin = CommandOrigin.PHONE
-
     init {
         if (overdueAtStart) {
             completePhase(counted = true, skipped = false, autoStart = false)
@@ -64,16 +59,12 @@ class TimerEngine private constructor(private val context: Context) {
     }
 
     fun toggle(origin: CommandOrigin = CommandOrigin.PHONE) {
-        commandOrigin = origin
-        if (_state.value.isRunning) pauseInternal() else startInternal()
+        if (_state.value.isRunning) pauseInternal(origin) else startInternal(origin)
     }
 
-    fun start(origin: CommandOrigin = CommandOrigin.PHONE) {
-        commandOrigin = origin
-        startInternal()
-    }
+    fun start(origin: CommandOrigin = CommandOrigin.PHONE) = startInternal(origin)
 
-    private fun startInternal() {
+    private fun startInternal(origin: CommandOrigin) {
         val current = _state.value
         if (current.isRunning) return
         val remaining = if (current.remainingMillis <= 0L) current.totalMillis else current.remainingMillis
@@ -82,17 +73,15 @@ class TimerEngine private constructor(private val context: Context) {
                 isRunning = true,
                 remainingMillis = remaining,
                 endAtMillis = System.currentTimeMillis() + remaining,
+                commandOrigin = origin,
             ),
         )
         launchTicker()
     }
 
-    fun pause(origin: CommandOrigin = CommandOrigin.PHONE) {
-        commandOrigin = origin
-        pauseInternal()
-    }
+    fun pause(origin: CommandOrigin = CommandOrigin.PHONE) = pauseInternal(origin)
 
-    private fun pauseInternal() {
+    private fun pauseInternal(origin: CommandOrigin) {
         val current = _state.value
         if (!current.isRunning) return
         val remaining = ((current.endAtMillis ?: System.currentTimeMillis()) - System.currentTimeMillis())
@@ -100,14 +89,20 @@ class TimerEngine private constructor(private val context: Context) {
         tickerJob?.cancel()
         tickerJob = null
         if (remaining <= 0L) {
-            completePhase(counted = true, skipped = false)
+            completePhase(counted = true, skipped = false, origin = origin)
             return
         }
-        applyState(current.copy(isRunning = false, remainingMillis = remaining, endAtMillis = null))
+        applyState(
+            current.copy(
+                isRunning = false,
+                remainingMillis = remaining,
+                endAtMillis = null,
+                commandOrigin = origin,
+            ),
+        )
     }
 
     fun reset(origin: CommandOrigin = CommandOrigin.PHONE) {
-        commandOrigin = origin
         tickerJob?.cancel()
         tickerJob = null
         val current = _state.value
@@ -118,25 +113,30 @@ class TimerEngine private constructor(private val context: Context) {
                 totalMillis = total,
                 remainingMillis = total,
                 endAtMillis = null,
+                commandOrigin = origin,
             ),
         )
     }
 
     /** Passe à la phase suivante sans compter ni alerter. */
     fun skip(origin: CommandOrigin = CommandOrigin.PHONE) {
-        commandOrigin = origin
-        completePhase(counted = false, skipped = true)
+        completePhase(counted = false, skipped = true, origin = origin)
     }
 
     fun applySettings(settings: PomodoroSettings) {
         settingsRepository.save(settings)
         val current = _state.value
-        val untouched = !current.isRunning && current.remainingMillis == current.totalMillis
         val total = settings.durationMillis(current.phase)
-        val updated = if (untouched) {
-            current.copy(settings = settings, totalMillis = total, remainingMillis = total)
-        } else {
-            current.copy(settings = settings)
+        val withSettings = current.copy(settings = settings)
+        val untouched = !current.isRunning && current.remainingMillis == current.totalMillis
+        val updated = when {
+            untouched -> withSettings.copy(totalMillis = total, remainingMillis = total)
+            total == current.totalMillis -> withSettings
+            else -> {
+                // Changement en cours de session : le temps restant est recalculé
+                // proportionnellement pour garder l'anneau de progression cohérent.
+                TimerTransitions.rescaleRemaining(withSettings, total, System.currentTimeMillis())
+            }
         }
         applyState(updated)
     }
@@ -158,35 +158,24 @@ class TimerEngine private constructor(private val context: Context) {
         counted: Boolean,
         skipped: Boolean,
         autoStart: Boolean = _state.value.settings.autoStartNext,
+        origin: CommandOrigin = _state.value.commandOrigin,
     ) {
         tickerJob?.cancel()
         tickerJob = null
 
         val current = _state.value
         val settings = current.settings
-        var completed = current.completedWorkSessions
-        if (current.phase == Phase.WORK && counted) completed += 1
-
-        val nextPhase = PomodoroCycle.nextPhase(
-            current = current.phase,
-            completedWorkSessions = completed,
-            sessionsBeforeLongBreak = settings.sessionsBeforeLongBreak,
+        val next = TimerTransitions.afterPhase(
+            current = current,
+            counted = counted,
+            autoStart = autoStart,
+            now = System.currentTimeMillis(),
         )
-        val nextTotal = settings.durationMillis(nextPhase)
-        applyState(
-            current.copy(
-                phase = nextPhase,
-                completedWorkSessions = completed,
-                totalMillis = nextTotal,
-                remainingMillis = nextTotal,
-                isRunning = autoStart,
-                endAtMillis = if (autoStart) System.currentTimeMillis() + nextTotal else null,
-            ),
-        )
+        applyState(next.copy(commandOrigin = origin))
 
         if (!skipped) {
             // Une session lancée depuis la montre est annoncée par la montre.
-            val alertOnPhone = commandOrigin == CommandOrigin.PHONE
+            val alertOnPhone = origin == CommandOrigin.PHONE
             Log.i(
                 "PomodoroTimer",
                 "Fin de phase, alerte sur ${if (alertOnPhone) "le téléphone" else "la montre"}",
@@ -194,7 +183,7 @@ class TimerEngine private constructor(private val context: Context) {
             if (settings.soundEnabled && alertOnPhone) tonePlayer.playCompletion()
             if (settings.vibrationEnabled && alertOnPhone) vibrationPlayer.playCompletion()
             if (settings.notificationsEnabled && alertOnPhone) {
-                notifyPhaseComplete(current.phase, nextPhase, settings)
+                notifyPhaseComplete(current.phase, next.phase, settings)
             }
         }
 

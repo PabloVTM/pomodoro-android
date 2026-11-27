@@ -33,6 +33,13 @@ class PomodoroTimerService : Service() {
         engine = TimerEngine.get(this)
         notifier = PomodoroNotifier(this)
 
+        // Service démarré alors que le minuteur est à l'arrêt : inutile de
+        // passer en premier plan (coûteux et source d'un flash de notification).
+        if (!engine.state.value.isRunning) {
+            stopSelf()
+            return
+        }
+
         ServiceCompat.startForeground(
             this,
             NOTIFICATION_ID,
@@ -55,10 +62,7 @@ class PomodoroTimerService : Service() {
         }
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (!engine.state.value.isRunning) stopSelf()
-        return START_STICKY
-    }
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
 
     override fun onDestroy() {
         observer?.cancel()

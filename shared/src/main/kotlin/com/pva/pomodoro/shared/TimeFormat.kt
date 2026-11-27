@@ -1,4 +1,4 @@
-package com.pva.pomodoro.util
+package com.pva.pomodoro.shared
 
 import java.util.Locale
 import kotlin.math.ceil

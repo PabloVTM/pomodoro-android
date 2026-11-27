@@ -3,7 +3,6 @@ package com.pva.pomodoro.wear.notif
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.Manifest
@@ -64,13 +63,6 @@ class WearOngoingActivity(private val context: Context) {
             )
             .build()
         ongoing.apply(context)
-
-        runCatching { notifyNow(builder) }
-    }
-
-    @SuppressLint("MissingPermission")
-    private fun notifyNow(builder: NotificationCompat.Builder) {
-        NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, builder.build())
     }
 
     private fun canPostNotifications(): Boolean {

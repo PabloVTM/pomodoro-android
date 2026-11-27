@@ -12,4 +12,10 @@ data class TimerState(
     val endAtMillis: Long? = null,
     val completedWorkSessions: Int = 0,
     val settings: PomodoroSettings = PomodoroSettings(),
+    /**
+     * Appareil à l'origine de la dernière commande. Persisté afin qu'une
+     * session lancée depuis la montre reste annoncée par la montre, même
+     * après une mort du processus ou un redémarrage.
+     */
+    val commandOrigin: CommandOrigin = CommandOrigin.PHONE,
 )

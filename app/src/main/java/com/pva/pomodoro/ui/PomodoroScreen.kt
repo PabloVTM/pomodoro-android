@@ -62,10 +62,11 @@ import com.pva.pomodoro.R
 import com.pva.pomodoro.model.Phase
 import com.pva.pomodoro.model.PomodoroSettings
 import com.pva.pomodoro.model.TimerState
+import com.pva.pomodoro.model.labelRes
 import com.pva.pomodoro.ui.theme.PhaseColors
 import com.pva.pomodoro.ui.theme.PomodoroTheme
 import com.pva.pomodoro.ui.theme.phaseColors
-import com.pva.pomodoro.util.formatClock
+import com.pva.pomodoro.shared.formatClock
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -280,15 +281,16 @@ private fun TimerDial(
 private fun SessionProgress(state: TimerState) {
     val settings = state.settings
     val accent = MaterialTheme.colorScheme.secondary
+    val sessionsBeforeLongBreak = settings.sessionsBeforeLongBreak.coerceAtLeast(1)
     val filled = if (state.phase == Phase.LONG_BREAK) {
-        settings.sessionsBeforeLongBreak
+        sessionsBeforeLongBreak
     } else {
-        state.completedWorkSessions % settings.sessionsBeforeLongBreak
+        state.completedWorkSessions % sessionsBeforeLongBreak
     }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            repeat(settings.sessionsBeforeLongBreak) { index ->
+            repeat(sessionsBeforeLongBreak) { index ->
                 Box(
                     modifier = Modifier
                         .size(9.dp)

@@ -1,4 +1,4 @@
-package com.pva.pomodoro.timer
+package com.pva.pomodoro.model
 
 /** Appareil à l'origine de la dernière commande. */
 enum class CommandOrigin {

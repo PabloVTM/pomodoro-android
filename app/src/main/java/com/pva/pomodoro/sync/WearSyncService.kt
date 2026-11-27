@@ -2,7 +2,7 @@ package com.pva.pomodoro.sync
 
 import android.os.Handler
 import android.os.Looper
-import com.pva.pomodoro.timer.CommandOrigin
+import com.pva.pomodoro.model.CommandOrigin
 import com.pva.pomodoro.timer.PomodoroTimerService
 import com.pva.pomodoro.timer.TimerEngine
 import com.google.android.gms.wearable.MessageEvent

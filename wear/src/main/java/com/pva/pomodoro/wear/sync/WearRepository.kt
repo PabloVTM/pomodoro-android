@@ -2,11 +2,9 @@ package com.pva.pomodoro.wear.sync
 
 import android.content.Context
 import com.pva.pomodoro.wear.alarm.WearAlarmScheduler
-import com.pva.pomodoro.wear.model.Phase
 import com.pva.pomodoro.wear.model.WearTimerState
 import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEvent
-import com.google.android.gms.wearable.DataMap
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
@@ -39,10 +37,11 @@ class WearRepository(context: Context) {
     private val messageClient = Wearable.getMessageClient(appContext)
     private val nodeClient = Wearable.getNodeClient(appContext)
     private val alarmScheduler = WearAlarmScheduler(appContext)
+    private val offsetStore = ClockOffsetStore(appContext)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     @Volatile
-    private var clockOffsetMillis = 0L
+    private var clockOffsetMillis = offsetStore.load()
 
     private val _state = MutableStateFlow<WearTimerState?>(null)
     val state: StateFlow<WearTimerState?> = _state.asStateFlow()
@@ -126,11 +125,11 @@ class WearRepository(context: Context) {
         val watchSentAt = buffer.long
         val phoneNow = buffer.long
         val now = System.currentTimeMillis()
-        val roundTrip = (now - watchSentAt).coerceAtLeast(0L)
-        val offset = phoneNow - (now - roundTrip / 2)
+        val offset = ClockSync.offset(now, watchSentAt, phoneNow)
 
         if (offset != clockOffsetMillis) {
             clockOffsetMillis = offset
+            offsetStore.save(offset)
             _state.value = _state.value?.copy(clockOffsetMillis = offset)
             alarmScheduler.sync(_state.value)
         }
@@ -138,30 +137,7 @@ class WearRepository(context: Context) {
     }
 
     private fun parse(bytes: ByteArray) {
-        val map = runCatching { DataMap.fromByteArray(bytes) }.getOrNull() ?: return
-        val phase = runCatching {
-            Phase.valueOf(map.getString(WearProtocol.KEY_PHASE) ?: Phase.WORK.name)
-        }.getOrDefault(Phase.WORK)
-        val running = map.getBoolean(WearProtocol.KEY_RUNNING)
-        val endAtPhone = if (running) map.getLong(WearProtocol.KEY_END_AT) else 0L
-        val remaining = if (running && endAtPhone > 0L) {
-            (endAtPhone - clockOffsetMillis - System.currentTimeMillis()).coerceAtLeast(0L)
-        } else {
-            map.getLong(WearProtocol.KEY_REMAINING_MS)
-        }
-
-        val state = WearTimerState(
-            phase = phase,
-            totalMillis = map.getLong(WearProtocol.KEY_TOTAL_MS),
-            remainingMillis = remaining,
-            isRunning = running,
-            endAtPhoneMillis = endAtPhone,
-            clockOffsetMillis = clockOffsetMillis,
-            completedWorkSessions = map.getInt(WearProtocol.KEY_COMPLETED),
-            sessionsBeforeLongBreak = map.getInt(WearProtocol.KEY_SESSIONS).coerceAtLeast(1),
-            soundEnabled = map.getBoolean(WearProtocol.KEY_SOUND, true),
-            vibrationEnabled = map.getBoolean(WearProtocol.KEY_VIBRATION, true),
-        )
+        val state = WearStateParser.parse(bytes, clockOffsetMillis, System.currentTimeMillis()) ?: return
         _state.value = state
         alarmScheduler.sync(state)
         _offline.value = false
